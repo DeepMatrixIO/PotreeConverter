@@ -182,6 +182,17 @@ inline vector<Attribute> computeOutputAttributes(LasHeader& header) {
 	} else if (format == 8) {
 		Attribute nir("nir", 2, 1, 2, AttributeType::UINT16);
 		list = { xyz, intensity, returnNumber, numberOfReturns, classificationFlags, classification, userData, scanAngle, pointSourceId, gpsTime, rgb, nir };
+	} else if (format == 9) {
+		list = { xyz, intensity, returnNumber, numberOfReturns, classificationFlags, classification, userData, scanAngle, pointSourceId, gpsTime,
+			wavePacketDescriptorIndex, byteOffsetToWaveformData, waveformPacketSize, returnPointWaveformLocation,
+			XYZt
+		};
+	} else if (format == 10) {
+		Attribute nir("nir", 2, 1, 2, AttributeType::UINT16);
+		list = { xyz, intensity, returnNumber, numberOfReturns, classificationFlags, classification, userData, scanAngle, pointSourceId, gpsTime, rgb, nir,
+			wavePacketDescriptorIndex, byteOffsetToWaveformData, waveformPacketSize, returnPointWaveformLocation,
+			XYZt
+		};
 	} else {
 		cout << "ERROR: currently unsupported LAS format: " << int(format) << endl;
 

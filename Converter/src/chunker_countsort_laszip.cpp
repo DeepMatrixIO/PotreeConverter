@@ -526,6 +526,74 @@ namespace chunker_countsort_laszip {
 				}
 			};
 
+			int offsetWaveDescriptor = outputAttributes.getOffset("wave packet descriptor index");
+			Attribute* attributeWaveDescriptor = outputAttributes.get("wave packet descriptor index");
+			auto wavePacketDescriptorIndex = [data, point, header, offsetWaveDescriptor, attributeWaveDescriptor](int64_t offset) {
+				if (offsetWaveDescriptor >= 0) {
+					uint8_t value = point->wave_packet[0];
+					memcpy(data + offset + offsetWaveDescriptor, &value, 1);
+
+					attributeWaveDescriptor->min.x = std::min(attributeWaveDescriptor->min.x, double(value));
+					attributeWaveDescriptor->max.x = std::max(attributeWaveDescriptor->max.x, double(value));
+				}
+			};
+
+			int offsetWaveOffset = outputAttributes.getOffset("byte offset to waveform data");
+			Attribute* attributeWaveOffset = outputAttributes.get("byte offset to waveform data");
+			auto byteOffsetToWaveformData = [data, point, header, offsetWaveOffset, attributeWaveOffset](int64_t offset) {
+				if (offsetWaveOffset >= 0) {
+					uint64_t value;
+					memcpy(&value, point->wave_packet + 1, 8);
+					memcpy(data + offset + offsetWaveOffset, &value, 8);
+
+					attributeWaveOffset->min.x = std::min(attributeWaveOffset->min.x, double(value));
+					attributeWaveOffset->max.x = std::max(attributeWaveOffset->max.x, double(value));
+				}
+			};
+
+			int offsetWaveSize = outputAttributes.getOffset("waveform packet size");
+			Attribute* attributeWaveSize = outputAttributes.get("waveform packet size");
+			auto waveformPacketSize = [data, point, header, offsetWaveSize, attributeWaveSize](int64_t offset) {
+				if (offsetWaveSize >= 0) {
+					uint32_t value;
+					memcpy(&value, point->wave_packet + 9, 4);
+					memcpy(data + offset + offsetWaveSize, &value, 4);
+
+					attributeWaveSize->min.x = std::min(attributeWaveSize->min.x, double(value));
+					attributeWaveSize->max.x = std::max(attributeWaveSize->max.x, double(value));
+				}
+			};
+
+			int offsetWaveLocation = outputAttributes.getOffset("return point waveform location");
+			Attribute* attributeWaveLocation = outputAttributes.get("return point waveform location");
+			auto returnPointWaveformLocation = [data, point, header, offsetWaveLocation, attributeWaveLocation](int64_t offset) {
+				if (offsetWaveLocation >= 0) {
+					float value;
+					memcpy(&value, point->wave_packet + 13, 4);
+					memcpy(data + offset + offsetWaveLocation, &value, 4);
+
+					attributeWaveLocation->min.x = std::min(attributeWaveLocation->min.x, double(value));
+					attributeWaveLocation->max.x = std::max(attributeWaveLocation->max.x, double(value));
+				}
+			};
+
+			int offsetXYZt = outputAttributes.getOffset("XYZ(t)");
+			Attribute* attributeXYZt = outputAttributes.get("XYZ(t)");
+			auto XYZt = [data, point, header, offsetXYZt, attributeXYZt](int64_t offset) {
+				if (offsetXYZt >= 0) {
+					float values[3];
+					memcpy(values, point->wave_packet + 17, 12);
+					memcpy(data + offset + offsetXYZt, values, 12);
+
+					attributeXYZt->min.x = std::min(attributeXYZt->min.x, double(values[0]));
+					attributeXYZt->min.y = std::min(attributeXYZt->min.y, double(values[1]));
+					attributeXYZt->min.z = std::min(attributeXYZt->min.z, double(values[2]));
+					attributeXYZt->max.x = std::max(attributeXYZt->max.x, double(values[0]));
+					attributeXYZt->max.y = std::max(attributeXYZt->max.y, double(values[1]));
+					attributeXYZt->max.z = std::max(attributeXYZt->max.z, double(values[2]));
+				}
+			};
+
 			unordered_map<string, function<void(int64_t)>> mapping = {
 				{"rgb", rgb},
 				{"nir", nir},
@@ -539,6 +607,11 @@ namespace chunker_countsort_laszip {
 				{"point source id", pointSourceId},
 				{"gps-time", gpsTime},
 				{"classification flags", classificationFlags},
+				{"wave packet descriptor index", wavePacketDescriptorIndex},
+				{"byte offset to waveform data", byteOffsetToWaveformData},
+				{"waveform packet size", waveformPacketSize},
+				{"return point waveform location", returnPointWaveformLocation},
+				{"XYZ(t)", XYZt},
 			};
 
 			for (auto& attribute : inputAttributes.list) {
@@ -571,6 +644,8 @@ namespace chunker_countsort_laszip {
 				{6, 10},
 				{7, 11},
 				{8, 12},
+				{9, 15},
+				{10, 17},
 			};
 
 			bool noMapping = formatToExtraIndex.find(header->point_data_format) == formatToExtraIndex.end();
