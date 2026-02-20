@@ -179,6 +179,9 @@ inline vector<Attribute> computeOutputAttributes(LasHeader& header) {
 		list = { xyz, intensity, returnNumber, numberOfReturns, classificationFlags, classification, userData, scanAngle, pointSourceId, gpsTime };
 	} else if (format == 7) {
 		list = { xyz, intensity, returnNumber, numberOfReturns, classificationFlags, classification, userData, scanAngle, pointSourceId, gpsTime, rgb };
+	} else if (format == 8) {
+		Attribute nir("nir", 2, 1, 2, AttributeType::UINT16);
+		list = { xyz, intensity, returnNumber, numberOfReturns, classificationFlags, classification, userData, scanAngle, pointSourceId, gpsTime, rgb, nir };
 	} else {
 		cout << "ERROR: currently unsupported LAS format: " << int(format) << endl;
 

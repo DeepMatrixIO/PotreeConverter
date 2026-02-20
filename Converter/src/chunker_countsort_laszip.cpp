@@ -514,8 +514,21 @@ namespace chunker_countsort_laszip {
 				attributeClassificationFlags->max.x = std::max(attributeClassificationFlags->max.x, double(point->extended_classification_flags));
 			};
 
+			int offsetNir = outputAttributes.getOffset("nir");
+			Attribute* attributeNir = outputAttributes.get("nir");
+			auto nir = [data, point, header, offsetNir, attributeNir](int64_t offset) {
+				if (offsetNir >= 0) {
+					uint16_t value = point->rgb[3];
+					memcpy(data + offset + offsetNir, &value, 2);
+
+					attributeNir->min.x = std::min(attributeNir->min.x, double(value));
+					attributeNir->max.x = std::max(attributeNir->max.x, double(value));
+				}
+			};
+
 			unordered_map<string, function<void(int64_t)>> mapping = {
 				{"rgb", rgb},
+				{"nir", nir},
 				{"intensity", intensity},
 				{"return number", returnNumber},
 				{"number of returns", numberOfReturns},
@@ -557,6 +570,7 @@ namespace chunker_countsort_laszip {
 				{5, 15},
 				{6, 10},
 				{7, 11},
+				{8, 12},
 			};
 
 			bool noMapping = formatToExtraIndex.find(header->point_data_format) == formatToExtraIndex.end();
